@@ -3,6 +3,7 @@
     "python.linting.lintOnSave": true,
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
     "python.formatting.provider": "black",
     "[python]": {
         "editor.formatOnSave": true,
@@ -17,6 +18,9 @@
 
     "python.testing.pytestArgs": [
         "tests"
+    ],
+    "python.analysis.extraPaths": [
+        "./src"
     ],
 
 
