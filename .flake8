@@ -2,6 +2,6 @@
 max-line-length = 88
 ignore = E402, E261
 exclude =
-    .git
+    .git,
     __pycache__
 count = True
