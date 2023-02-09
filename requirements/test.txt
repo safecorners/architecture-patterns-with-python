@@ -1,3 +1,6 @@
 -r prod.txt
 pytest
+pytest-icdiff
 pytest-cov
+requests
+types-requests
