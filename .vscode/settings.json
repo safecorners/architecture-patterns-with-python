@@ -22,6 +22,4 @@
     "python.analysis.extraPaths": [
         "./src"
     ],
-
-
 }
