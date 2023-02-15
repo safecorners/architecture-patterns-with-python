@@ -1,5 +1,12 @@
 # Architecture Patterns with Python
 
+## Todos
+
+- [ ] [The Twelve-Fator App](https://12factor.net/ko/)
+- [ ] Update Github Workflows
+
+## References
+
 - [Pytest: Good Integration Practices](https://docs.pytest.org/en/latest/explanation/goodpractices.html#)
 - [Pytest: Determining rootdir and configfile](https://docs.pytest.org/en/7.1.x/reference/customize.html#rootdir)
 - [Testing Flask Applications](https://flask.palletsprojects.com/en/2.2.x/testing/#testing-flask-applications)
