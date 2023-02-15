@@ -5,3 +5,11 @@ on:
     branches: [ $default-branch ]
   pull_request:
     branches: [ $default-branch]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+          os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
