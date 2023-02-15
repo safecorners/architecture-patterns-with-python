@@ -6,3 +6,5 @@
 - [Testing Flask Applications with Pytest](https://testdriven.io/blog/flask-pytest/)
 - [Packaging Python Projects](https://packaging.python.org/en/latest/tutorials/packaging-projects/)
 - [Configuring Flake8](https://flake8.pycqa.org/en/latest/user/configuration.html)
+- [Docker: Python - Use Containers for Development](https://docs.docker.com/language/python/develop/)
+- [Docker: Java - Run your Tests](https://docs.docker.com/language/java/run-tests/)
