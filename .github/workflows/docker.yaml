@@ -1,4 +1,4 @@
-name : docker 
+name : tests with docker 
 
 on:
   push:

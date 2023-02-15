@@ -21,7 +21,7 @@ services:
       - ./src:/src
       - ./tests:/tests
     ports:
-      - "5000:80"
+      - "80:80"
       
   postgres:
     container_name: postgres
