@@ -1,8 +1,9 @@
 import pytest
 
 from allocation.adapters import repository
-from allocation.domain import model
-from allocation.service import services
+from allocation.service import services, unit_of_work
+
+FakeRepository = repository.InMemoryRepository
 
 
 class FakeSession:
@@ -12,33 +13,44 @@ class FakeSession:
         self.committed = True
 
 
-def test_add_batch():
-    repo, session = repository.InMemoryRepository([]), FakeSession()
-    services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, repo, session)
+class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
+    def __init__(self):
+        self.batches = FakeRepository([])
+        self.committed = False
 
-    assert repo.get("b1") is not None
-    assert session.committed
+    def commit(self):
+        self.committed = True
+
+    def rollback(self):
+        ...
+
+
+def test_add_batch():
+    uow = FakeUnitOfWork()
+    services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
+
+    assert uow.batches.get("b1") is not None
+    assert uow.committed
 
 
 def test_returns_allocation():
-    repo, session = repository.InMemoryRepository([]), FakeSession()
-    services.add_batch("b1", "COMPLICATE-LAMP", 100, None, repo, session)
-    result = services.allocate("o1", "COMPLICATE-LAMP", 10, repo, session)
+    uow = FakeUnitOfWork()
+    services.add_batch("b1", "COMPLICATE-LAMP", 100, None, uow)
+    result = services.allocate("o1", "COMPLICATE-LAMP", 10, uow)
     assert result == "b1"
 
 
 def test_erorr_for_invalid_sku():
-    repo, session = repository.InMemoryRepository([]), FakeSession()
-    services.add_batch("b1", "AREAL-SKU", 100, None, repo, session)
+    uow = FakeUnitOfWork()
+    services.add_batch("b1", "AREAL-SKU", 100, None, uow)
 
     with pytest.raises(services.InvalidSku, match="Invalid sku NONEXISTENTSKU"):
-        services.allocate("o1", "NONEXISTENTSKU", 10, repo, FakeSession())
+        services.allocate("o1", "NONEXISTENTSKU", 10, uow)
 
 
 def test_commits():
-    batch = model.Batch("b1", "OMINOUS-MIRROR", 100, eta=None)
-    repo = repository.InMemoryRepository([batch])
-    session = FakeSession()
+    uow = FakeUnitOfWork()
+    services.add_batch("b1", "OMINOUS-MIRROR", 100, None, uow)
 
-    services.allocate("o1", "OMINOUS-MIRROR", 10, repo, session)
-    assert session.committed is True
+    services.allocate("o1", "OMINOUS-MIRROR", 10, uow)
+    assert uow.committed is True
