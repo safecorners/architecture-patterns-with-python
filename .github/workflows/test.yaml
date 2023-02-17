@@ -1,4 +1,4 @@
-name : tests with docker 
+name : test
 
 on:
   push:
@@ -13,3 +13,8 @@ jobs:
       matrix:
           os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: "build images"
+        run: docker-compose -f docker-compose build
+
