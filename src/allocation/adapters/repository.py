@@ -1,46 +1,24 @@
 import abc
-from typing import List
 
-import allocation.domain.model as model
+from allocation.domain.model import Product
 
 
 class AbstractRepository(abc.ABC):
     @abc.abstractmethod
-    def add(self, batch: model.Batch) -> None:
+    def add(self, product: Product) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get(self, reference) -> model.Batch:
+    def get(self, sku) -> Product:
         raise NotImplementedError
-
-    @abc.abstractmethod
-    def list(self) -> List[model.Batch]:
-        raise NotImplementedError
-
-
-class InMemoryRepository(AbstractRepository):
-    def __init__(self, batches) -> None:
-        self._batches = set(batches)
-
-    def add(self, batch: model.Batch) -> None:
-        self._batches.add(batch)
-
-    def get(self, reference) -> model.Batch:
-        return next(b for b in self._batches if b.reference == reference)
-
-    def list(self) -> List[model.Batch]:
-        return list(self._batches)
 
 
 class SqlAlchemyRepository(AbstractRepository):
     def __init__(self, session) -> None:
         self.session = session
 
-    def add(self, batch: model.Batch) -> None:
-        self.session.add(batch)
+    def add(self, product: Product) -> None:
+        self.session.add(product)
 
-    def get(self, reference) -> model.Batch:
-        return self.session.query(model.Batch).filter_by(reference=reference).one()
-
-    def list(self) -> List[model.Batch]:
-        return self.session.query(model.Batch).all()
+    def get(self, sku: str) -> Product:
+        return self.session.query(Product).filter_by(sku=sku).first()

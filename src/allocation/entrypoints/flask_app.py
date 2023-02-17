@@ -1,11 +1,8 @@
 from datetime import datetime
 
 from flask import Flask, jsonify, request
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from allocation import config
-from allocation.adapters import orm, repository
+from allocation.adapters import orm
 from allocation.domain import model
 from allocation.service import services, unit_of_work
 
