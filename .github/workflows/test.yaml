@@ -8,5 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: build image
-      run: docker-compose build
+    - name: Build a Image
+      run: docker-compose -f docker-compose.yaml build
+    - name: Unit Tests
+      run: docker-compose run --rm --no-deps --entrypoint=pytest app /tests/unit
