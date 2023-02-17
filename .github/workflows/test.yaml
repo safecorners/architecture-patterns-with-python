@@ -10,5 +10,9 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build a Image
       run: docker-compose -f docker-compose.yaml build
-    - name: Unit Tests
+    - name: Run Unit Tests
       run: docker-compose run --rm --no-deps --entrypoint=pytest app /tests/unit
+    - name: Run Integration Tests
+      run: docker-compose run --rm --no-deps --entrypoint=pytest app /tests/integration
+    - name: Run e2e Tests
+      run: docker-compose run --rm --no-deps --entrypoint=pytest app /tests/e2e
