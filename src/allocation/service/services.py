@@ -17,7 +17,7 @@ def is_valid_sku(sku, batches):
 
 def allocate(
     orderid: str, sku: str, qty: int, uow: unit_of_work.AbstractUnitOfWork
-) -> str:
+) -> Optional[str]:
     line = model.OrderLine(orderid, sku, qty)
     with uow:
         product = uow.products.get(line.sku)
