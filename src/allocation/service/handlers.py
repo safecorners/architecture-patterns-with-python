@@ -41,6 +41,15 @@ def add_batch(
         uow.commit()
 
 
+def change_batch_quantity(
+    event: events.BatchQuantityChanged, uow: unit_of_work.AbstractUnitOfWork
+):
+    with uow:
+        product = uow.products.get_by_batchref(event.ref)
+        product.change_batch_quantity(event.ref, event.qty)
+        uow.commit()
+
+
 def send_out_of_stock_notification(
     event: events.OutOfStock, uow: unit_of_work.AbstractUnitOfWork
 ):
