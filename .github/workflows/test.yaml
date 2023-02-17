@@ -18,3 +18,5 @@ jobs:
       run: docker-compose run --rm --no-deps --entrypoint=pytest app /tests/integration
     - name: Run e2e Tests
       run: docker-compose run --rm --no-deps --entrypoint=pytest app /tests/e2e
+    - name: Linting
+      run: make black
