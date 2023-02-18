@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from allocation.adapters import email
-from allocation.domain import events, model
+from allocation.domain import commands, events, model
 from allocation.service import unit_of_work
 
 
@@ -16,9 +16,9 @@ def is_valid_sku(sku, batches):
 
 
 def allocate(
-    event: events.AllocationRequired, uow: unit_of_work.AbstractUnitOfWork
+    cmd: commands.Allocate, uow: unit_of_work.AbstractUnitOfWork
 ) -> Optional[str]:
-    line = model.OrderLine(event.orderid, event.sku, event.qty)
+    line = model.OrderLine(cmd.orderid, cmd.sku, cmd.qty)
     with uow:
         product = uow.products.get(line.sku)
         if product is None:
@@ -29,24 +29,24 @@ def allocate(
 
 
 def add_batch(
-    event: events.BatchCreated,
+    cmd: commands.CreateBatch,
     uow: unit_of_work.AbstractUnitOfWork,
 ) -> None:
     with uow:
-        product = uow.products.get(event.sku)
+        product = uow.products.get(cmd.sku)
         if product is None:
-            product = model.Product(event.sku, batches=[])
+            product = model.Product(cmd.sku, batches=[])
             uow.products.add(product)
-        product.batches.append(model.Batch(event.ref, event.sku, event.qty, event.eta))
+        product.batches.append(model.Batch(cmd.ref, cmd.sku, cmd.qty, cmd.eta))
         uow.commit()
 
 
 def change_batch_quantity(
-    event: events.BatchQuantityChanged, uow: unit_of_work.AbstractUnitOfWork
+    cmd: commands.ChangeBatchQuantity, uow: unit_of_work.AbstractUnitOfWork
 ):
     with uow:
-        product = uow.products.get_by_batchref(event.ref)
-        product.change_batch_quantity(event.ref, event.qty)
+        product = uow.products.get_by_batchref(cmd.ref)
+        product.change_batch_quantity(cmd.ref, cmd.qty)
         uow.commit()
 
 
