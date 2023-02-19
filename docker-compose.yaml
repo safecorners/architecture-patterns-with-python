@@ -7,14 +7,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: allocation-image
     depends_on:
       - postgres
+      - redis
+      - redis_pubsub
     environment:
       - DB_HOST=postgres
       - DB_USER=allocation
       - DB_PASSWORD=allocation
       - DB_NAME=allocation
       - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - API_HOST=app
       - PYTHONDONTWRITEBYTECODE=1
     volumes:
@@ -22,7 +27,32 @@ services:
       - ./tests:/tests
     ports:
       - "80:80"
-      
+  
+  redis_pubsub:
+    container_name: redis_pubsub
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: allocation-image
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=allocation
+      - DB_PASSWORD=allocation
+      - DB_NAME=allocation
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - API_HOST=app
+      - PYTHONDONTWRITEBYTECODE=1
+    volumes:
+      - ./src:/src
+      - ./tests:/tests
+    entrypoint: ["python", "/src/allocation/entrypoints/redis_eventconsumer.py"]
+
+
   postgres:
     container_name: postgres
     image: postgres:9.6
@@ -32,3 +62,9 @@ services:
       - POSTGRES_DB=allocation
     ports: 
       - "5432:5432"
+  
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+    - "6379:6379"
