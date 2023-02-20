@@ -13,5 +13,5 @@ r = redis.Redis(**config.get_redis_host_and_port())
 
 
 def publish(channel, event: events.Event):
-    logging.debug(f"publishing: channel={channel}, event={event}")
+    logging.info(f"publishing: channel={channel}, event={event}")
     r.publish(channel, json.dumps(asdict(event)))

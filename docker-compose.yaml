@@ -12,6 +12,7 @@ services:
       - postgres
       - redis
       - redis_pubsub
+      - mailhog
     environment:
       - DB_HOST=postgres
       - DB_USER=allocation
@@ -20,6 +21,7 @@ services:
       - DB_PORT=5432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - EMAIL_HOST=mailhog
       - API_HOST=app
       - PYTHONDONTWRITEBYTECODE=1
     volumes:
@@ -37,6 +39,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - mailhog
     environment:
       - DB_HOST=postgres
       - DB_USER=allocation
@@ -45,6 +48,7 @@ services:
       - DB_PORT=5432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - EMAIL_HOST=mailhog
       - API_HOST=app
       - PYTHONDONTWRITEBYTECODE=1
     volumes:
@@ -68,3 +72,9 @@ services:
     image: redis:alpine
     ports:
     - "6379:6379"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "11025:1025"
+      - "18025:8025"
