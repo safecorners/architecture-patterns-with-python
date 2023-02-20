@@ -16,8 +16,7 @@ logger = logging.getLogger(__name__)
 Message = Union[commands.Command, events.Event]
 
 
-def handle(message: Message, uow: unit_of_work.AbstractUnitOfWork):
-    results = []
+def handle(message: Message, uow: unit_of_work.AbstractUnitOfWork) -> None:
     queue = [message]
     while queue:
         message = queue.pop(0)
@@ -25,11 +24,9 @@ def handle(message: Message, uow: unit_of_work.AbstractUnitOfWork):
         if isinstance(message, events.Event):
             handle_event(message, queue, uow)
         elif isinstance(message, commands.Command):
-            cmd_result = handle_command(message, queue, uow)
-            results.append(cmd_result)
+            handle_command(message, queue, uow)
         else:
             raise Exception(f"{message} was not an Event or Command")
-    return results
 
 
 def handle_event(
@@ -60,9 +57,9 @@ def handle_command(
     logger.debug("handling commnad %s", command)
     try:
         handler = COMMAND_HANDLERS[type(command)]
-        result = handler(command, uow)
+        handler(command, uow)
         queue.extend(uow.collect_new_events())
-        return result
+
     except Exception:
         logger.exception("Exception handling command %s", command)
         raise
@@ -70,7 +67,14 @@ def handle_command(
 
 EVENT_HANDLERS: Dict[Type[events.Event], List[Callable]] = {
     events.OutOfStock: [handlers.send_out_of_stock_notification],
-    events.Allocated: [handlers.publish_allocated_event],
+    events.Allocated: [
+        handlers.publish_allocated_event,
+        handlers.add_allocation_to_read_model,
+    ],
+    events.Deallocated: [
+        handlers.remove_allocation_from_read_model,
+        handlers.reallocate,
+    ],
 }
 
 COMMAND_HANDLERS: Dict[Type[commands.Command], Callable] = {

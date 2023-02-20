@@ -63,11 +63,16 @@ def fake_redis_publish():
 
 
 class TestAllocate:
-    def test_returns_allocation(self):
+    def test_allocation(self):
         uow = FakeUnitOfWork()
-        messagebus.handle(commands.CreateBatch("b1", "COMPLICATE-LAMP", 100, None), uow)
-        results = messagebus.handle(commands.Allocate("o1", "COMPLICATE-LAMP", 10), uow)
-        assert results.pop(0) == "b1"
+        messagebus.handle(
+            commands.CreateBatch("b1", "COMPLICATED-LAMP", 100, None), uow
+        )
+        messagebus.handle(commands.Allocate("o1", "COMPLICATED-LAMP", 10), uow)
+
+        [batch] = uow.products.get("COMPLICATED-LAMP").batches
+
+        assert batch.available_quantity == 90
 
     def test_erorr_for_invalid_sku(self):
         uow = FakeUnitOfWork()
