@@ -20,16 +20,16 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def in_memory_db():
+def in_memory_db_sqlite_db():
     engine = create_engine("sqlite:///:memory:")
     metadata.create_all(engine)
     return engine
 
 
 @pytest.fixture
-def sqlite_session_factory(in_memory_db):
+def sqlite_session_factory(in_memory_db_sqlite_db):
     start_mappers()
-    yield sessionmaker(bind=in_memory_db)
+    yield sessionmaker(bind=in_memory_db_sqlite_db)
     clear_mappers()
 
 
@@ -57,7 +57,7 @@ def wait_for_redis_to_come_up():
 
 @pytest.fixture(scope="session")
 def postgres_db():
-    engine = create_engine(config.get_postgres_uri())
+    engine = create_engine(config.get_postgres_uri(), isolation_level="SERIALIZABLE")
     wait_for_postgres_to_come_up(engine)
     metadata.create_all(engine)
     return engine

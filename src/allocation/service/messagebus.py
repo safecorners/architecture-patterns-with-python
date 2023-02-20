@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Callable, Dict, List, Type, Union
 from tenacity import RetryError, Retrying, stop_after_attempt, wait_exponential
 
 from allocation.domain import commands, events
-from allocation.service import handlers
 
 if TYPE_CHECKING:
     from allocation.service import unit_of_work
@@ -16,69 +15,55 @@ logger = logging.getLogger(__name__)
 Message = Union[commands.Command, events.Event]
 
 
-def handle(message: Message, uow: unit_of_work.AbstractUnitOfWork) -> None:
-    queue = [message]
-    while queue:
-        message = queue.pop(0)
+class MessageBus:
+    def __init__(
+        self,
+        uow: unit_of_work.AbstractUnitOfWork,
+        event_handlers: Dict[Type[events.Event], List[Callable]],
+        command_handlers: Dict[Type[commands.Command], Callable],
+    ) -> None:
+        self.uow = uow
+        self.event_handlers = event_handlers
+        self.command_handlers = command_handlers
 
-        if isinstance(message, events.Event):
-            handle_event(message, queue, uow)
-        elif isinstance(message, commands.Command):
-            handle_command(message, queue, uow)
-        else:
-            raise Exception(f"{message} was not an Event or Command")
+    def handle(self, message: Message) -> None:
+        self.queue = [message]
+        while self.queue:
+            message = self.queue.pop(0)
 
+            if isinstance(message, events.Event):
+                self.handle_event(message)
+            elif isinstance(message, commands.Command):
+                self.handle_command(message)
+            else:
+                raise Exception(f"{message} was not an Event or Command")
 
-def handle_event(
-    event: events.Event, queue: List[Message], uow: unit_of_work.AbstractUnitOfWork
-):
-    for handler in EVENT_HANDLERS[type(event)]:
+    def handle_event(self, event: events.Event) -> None:
+        for handler in self.event_handlers[type(event)]:
+            try:
+                for attempt in Retrying(
+                    stop=stop_after_attempt(3), wait=wait_exponential()
+                ):
+                    with attempt:
+                        logger.debug(
+                            "handling event %s with handler %s", event, handler
+                        )
+                        handler(event)
+                        self.queue.extend(self.uow.collect_new_events())
+            except RetryError as retry_failure:
+                logger.exception(
+                    "Failed to handle events %s times",
+                    retry_failure.last_attempt.attempt_number,
+                )
+                continue
+
+    def handle_command(self, command: commands.Command) -> None:
+        logger.debug("handling commnad %s", command)
         try:
-            for attempt in Retrying(
-                stop=stop_after_attempt(3), wait=wait_exponential()
-            ):
-                with attempt:
-                    logger.debug("handling event %s with handler %s", event, handler)
-                    handler(event, uow)
-                    queue.extend(uow.collect_new_events())
-        except RetryError as retry_failure:
-            logger.error(
-                "Failed to handle events %s times",
-                retry_failure.last_attempt.attempt_number,
-            )
-            continue
+            handler = self.command_handlers[type(command)]
+            handler(command)
+            self.queue.extend(self.uow.collect_new_events())
 
-
-def handle_command(
-    command: commands.Command,
-    queue: List[Message],
-    uow: unit_of_work.AbstractUnitOfWork,
-):
-    logger.debug("handling commnad %s", command)
-    try:
-        handler = COMMAND_HANDLERS[type(command)]
-        handler(command, uow)
-        queue.extend(uow.collect_new_events())
-
-    except Exception:
-        logger.exception("Exception handling command %s", command)
-        raise
-
-
-EVENT_HANDLERS: Dict[Type[events.Event], List[Callable]] = {
-    events.OutOfStock: [handlers.send_out_of_stock_notification],
-    events.Allocated: [
-        handlers.publish_allocated_event,
-        handlers.add_allocation_to_read_model,
-    ],
-    events.Deallocated: [
-        handlers.remove_allocation_from_read_model,
-        handlers.reallocate,
-    ],
-}
-
-COMMAND_HANDLERS: Dict[Type[commands.Command], Callable] = {
-    commands.Allocate: handlers.allocate,
-    commands.CreateBatch: handlers.add_batch,
-    commands.ChangeBatchQuantity: handlers.change_batch_quantity,
-}
+        except Exception:
+            logger.exception("Exception handling command %s", command)
+            raise

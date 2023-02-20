@@ -17,7 +17,7 @@
     "python.testing.pytestEnabled": true,
 
     "python.testing.pytestArgs": [
-        "tests/unit"
+        "tests"
     ],
     "python.analysis.extraPaths": [
         "./src"
