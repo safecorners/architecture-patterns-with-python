@@ -1,5 +1,4 @@
 from datetime import date
-from unittest import mock
 
 import pytest
 
@@ -105,7 +104,7 @@ class TestAllocate:
         bus.handle(commands.Allocate("o1", "POPULAR-CURTAINS", 10))
 
         assert emails == [
-            ("stock@made.com", f"Out of stock for POPULAR-CURTAINS"),
+            ("stock@made.com", "Out of stock for POPULAR-CURTAINS"),
         ]
 
 

@@ -1,7 +1,5 @@
 import logging
 
-from sqlalchemy.sql import text
-
 from allocation.domain import model
 from allocation.service import unit_of_work
 
