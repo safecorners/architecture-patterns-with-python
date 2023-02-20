@@ -4,6 +4,11 @@
 
 - [ ] [The Twelve-Fator App](https://12factor.net/ko/)
 - [ ] Update Github Workflows
+- [ ] Add WSIG
+- [ ] Add Nginx
+- [ ] Improve Type Annotation
+- [ ] Add Validation
+- [ ] Report Coverage
 
 ## References
 
@@ -14,4 +19,5 @@
 - [Packaging Python Projects](https://packaging.python.org/en/latest/tutorials/packaging-projects/)
 - [Configuring Flake8](https://flake8.pycqa.org/en/latest/user/configuration.html)
 - [Docker: Python - Use Containers for Development](https://docs.docker.com/language/python/develop/)
-- [Docker: Java - Run your Tests](https://docs.docker.com/language/java/run-tests/)
+- [Implementing a Command Bus in Python](https://www.lingoapp.com/blog/implementing-a-command-bus-in-python)
+- [Command Bus Pattern in Python](https://gist.github.com/chrisguitarguy/2cf6eecaf382af7b08b8)
