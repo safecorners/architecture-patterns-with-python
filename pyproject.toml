@@ -5,6 +5,8 @@ addopts = [
 pythonpath = [
   "src"
 ]
+log_cli = true
+log_cli_level = "debug"
 
 [tool.black]
 line-length = 88

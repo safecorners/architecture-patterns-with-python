@@ -1,7 +1,11 @@
-from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table
+import logging
+
+from sqlalchemy import Column, Date, ForeignKey, Integer, String, Table, event
 from sqlalchemy.orm import registry, relationship
 
 from allocation.domain.model import Batch, OrderLine, Product
+
+logger = logging.getLogger(__name__)
 
 mapper_registry = registry()
 metadata = mapper_registry.metadata
@@ -32,6 +36,13 @@ allocations = Table(
     Column("orderline_id", ForeignKey("order_lines.id")),
     Column("batch_id", ForeignKey("batches.id")),
 )
+allocations_view = Table(
+    "allocations_view",
+    metadata,
+    Column("orderid", String(255)),
+    Column("sku", String(255)),
+    Column("batchref", String(255)),
+)
 
 
 products = Table(
@@ -43,6 +54,7 @@ products = Table(
 
 
 def start_mappers() -> None:
+    logger.info("Start mappers")
     lines_mapper = mapper_registry.map_imperatively(OrderLine, order_lines)
     batches_mapper = mapper_registry.map_imperatively(
         Batch,
@@ -58,3 +70,8 @@ def start_mappers() -> None:
     mapper_registry.map_imperatively(
         Product, products, properties={"batches": relationship(batches_mapper)}
     )
+
+
+@event.listens_for(Product, "load")
+def receive_load(product, _):
+    product.events = []
