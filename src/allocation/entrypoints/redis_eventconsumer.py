@@ -4,9 +4,8 @@ import logging
 import redis
 
 from allocation import bootstrap, config
-from allocation.adapters import orm
 from allocation.domain import commands
-from allocation.service import messagebus, unit_of_work
+from allocation.service import unit_of_work
 
 logger = logging.getLogger(__name__)
 

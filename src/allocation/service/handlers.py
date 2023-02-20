@@ -5,7 +5,7 @@ from typing import Callable, Dict, List, Type
 
 from sqlalchemy.sql import text
 
-from allocation.adapters import email, redis_eventpublisher
+from allocation.adapters import notifications
 from allocation.domain import commands, events, model
 from allocation.service import unit_of_work
 
@@ -62,9 +62,9 @@ def change_batch_quantity(
 
 
 def send_out_of_stock_notification(
-    event: events.OutOfStock, send_mail: Callable
+    event: events.OutOfStock, notifications: notifications.AbstractNotifications
 ) -> None:
-    send_mail("stock@made.com", f"Out of stock for {event.sku}")
+    notifications.send("stock@made.com", f"Out of stock for {event.sku}")
 
 
 def publish_allocated_event(event: events.Allocated, publish: Callable) -> None:

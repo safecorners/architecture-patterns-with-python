@@ -1,9 +1,11 @@
+from collections import defaultdict
 from datetime import date
+from typing import Dict, List
 
 import pytest
 
 from allocation import bootstrap
-from allocation.adapters import repository
+from allocation.adapters import notifications, repository
 from allocation.domain import commands
 from allocation.service import handlers, unit_of_work
 
@@ -12,7 +14,7 @@ def bootstrap_test_app():
     return bootstrap.bootstrap(
         start_orm=False,
         uow=FakeUnitOfWork(),
-        send_mail=lambda *args: None,
+        notifications=FakeNotifications(),
         publish=lambda *args: None,
     )
 
@@ -45,6 +47,14 @@ class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
 
     def rollback(self):
         ...
+
+
+class FakeNotifications(notifications.AbstractNotifications):
+    def __init__(self) -> None:
+        self.sent: Dict[str, List[str]] = defaultdict(list)
+
+    def send(self, destination, message):
+        self.sent[destination].append(message)
 
 
 class TestAddBatch:
@@ -88,23 +98,20 @@ class TestAllocate:
         assert bus.uow.committed is True
 
     def test_send_email_on_out_of_stock_error(self):
-        emails = []
-
-        def fake_send_mail(*args):
-            emails.append(args)
+        postbox = FakeNotifications()
 
         bus = bootstrap.bootstrap(
             start_orm=False,
             uow=FakeUnitOfWork(),
-            send_mail=fake_send_mail,
+            notifications=postbox,
             publish=lambda *args: None,
         )
 
         bus.handle(commands.CreateBatch("b1", "POPULAR-CURTAINS", 9, None))
         bus.handle(commands.Allocate("o1", "POPULAR-CURTAINS", 10))
 
-        assert emails == [
-            ("stock@made.com", "Out of stock for POPULAR-CURTAINS"),
+        assert postbox.sent["stock@made.com"] == [
+            "Out of stock for POPULAR-CURTAINS",
         ]
 
 
