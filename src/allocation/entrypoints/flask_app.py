@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import Optional
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
+from flask_pydantic import validate
+from pydantic import BaseModel
 
 from allocation import bootstrap, views
 from allocation.domain import commands
@@ -10,15 +13,25 @@ bus = bootstrap.bootstrap()
 app = Flask(__name__)
 
 
+class AddBatchRequest(BaseModel):
+    ref: str
+    sku: str
+    qty: int
+    eta: Optional[str]
+
+
 @app.route("/add_batch", methods=["POST"])
-def add_batch():
-    eta = request.json["eta"]
-    if eta is not None:
-        eta = datetime.fromisoformat(eta).date()
+@validate()
+def add_batch(body: AddBatchRequest):
+    if body.eta is not None:
+        eta = datetime.fromisoformat(body.eta).date()
+    else:
+        eta = None
+
     cmd = commands.CreateBatch(
-        request.json["ref"],
-        request.json["sku"],
-        request.json["qty"],
+        body.ref,
+        body.sku,
+        body.qty,
         eta,
     )
 
@@ -26,13 +39,20 @@ def add_batch():
     return "OK", 201
 
 
+class AllocateRequest(BaseModel):
+    orderid: str
+    sku: str
+    qty: int
+
+
 @app.route("/allocate", methods=["POST"])
-def allocate_endpoint():
+@validate()
+def allocate_endpoint(body: AllocateRequest):
     try:
         cmd = commands.Allocate(
-            request.json["orderid"],
-            request.json["sku"],
-            request.json["qty"],
+            body.orderid,
+            body.sku,
+            body.qty,
         )
 
         bus.handle(cmd)

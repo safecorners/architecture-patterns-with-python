@@ -4,10 +4,10 @@
 
 - [ ] [The Twelve-Fator App](https://12factor.net/ko/)
 - [ ] Update Github Workflows
-- [ ] Add WSIG
+- [ ] Add Gunicorn
 - [ ] Add Nginx
 - [ ] Improve Type Annotation
-- [ ] Add Validation
+- [x] Add Validation
 - [ ] Report Coverage
 
 ## References
